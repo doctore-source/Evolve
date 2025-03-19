@@ -1,4 +1,8 @@
 # Prometheus Documentation
+# Rebuild the site whenever relevant files change:
+make guard
+# Start the local development server in a separate shell:
+make serve
 
 This repository contains both the content and the static-site generator code for the
 Prometheus documentation site.
