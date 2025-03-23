@@ -1,0 +1,109 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+import requests
+import json
+import matplotlib.pyplot as plt
+
+# App Configuration
+st.set_page_config(page_title="Doctore Dashboard", layout="wide")
+
+# Apply CSS for a modern look
+st.markdown("""
+    <style>
+    body {
+        background-color: #0e1117;
+        color: #c9d1d9;
+    }
+    .stButton>button {
+        background-color: #238636;
+        color: white;
+        border-radius: 8px;
+        padding: 10px 20px;
+    }
+    .stTextInput>div>div>input {
+        background-color: #161b22;
+        color: white;
+    }
+    .stMarkdown {
+        background-color: #161b22;
+        padding: 10px;
+        border-radius: 8px;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# Sidebar for Navigation
+st.sidebar.title("Doctore - Navigation")
+st.sidebar.subheader("Select a page to view")
+page = st.sidebar.selectbox("Pages", ["Home", "Prediction", "Performance", "Reports"])
+
+# API URL (Adjust to your server's IP)
+API_URL = "http://127.0.0.1:5000/predict"
+
+# Home Page
+if page == "Home":
+    st.title("Doctore: Predictive Analytics Dashboard")
+    st.markdown("""
+        Welcome to the Doctore Dashboard. Navigate through the tabs to interact with predictions, 
+        view performance metrics, and generate reports. 
+    """)
+
+# Prediction Page
+elif page == "Prediction":
+    st.title("Make a Prediction")
+    st.markdown("### Enter your features below to get a prediction")
+
+    # User input
+    feature_values = st.text_input("Enter feature values separated by commas (e.g., 1, 2, 3, 4, 5)", "")
+    
+    if st.button("Predict"):
+        if feature_values:
+            try:
+                features = [float(x.strip()) for x in feature_values.split(",")]
+                data = {"features": features}
+                response = requests.post(API_URL, json=data)
+                
+                if response.status_code == 200:
+                    prediction = response.json().get("prediction", "No prediction found.")
+                    st.success(f"Prediction: {prediction}")
+                else:
+                    st.error(f"Error: {response.json().get('error', 'An error occurred.')}")
+            except Exception as e:
+                st.error(f"Error parsing input: {e}")
+        else:
+            st.warning("Please enter feature values.")
+
+# Performance Page
+elif page == "Performance":
+    st.title("Performance Metrics")
+    st.markdown("### Model Performance Over Time")
+    
+    # Sample data for demonstration
+    dates = pd.date_range(start="2025-03-20", periods=10)
+    accuracy = np.random.uniform(0.7, 0.9, 10)
+    profit = np.random.uniform(100, 1000, 10)
+
+    fig, ax1 = plt.subplots(figsize=(10, 5))
+
+    ax1.set_xlabel('Date')
+    ax1.set_ylabel('Accuracy', color='tab:blue')
+    ax1.plot(dates, accuracy, label='Accuracy', color='tab:blue')
+    ax1.tick_params(axis='y', labelcolor='tab:blue')
+
+    ax2 = ax1.twinx()
+    ax2.set_ylabel('Profit ($)', color='tab:green')
+    ax2.plot(dates, profit, label='Profit', color='tab:green')
+    ax2.tick_params(axis='y', labelcolor='tab:green')
+
+    plt.title('Model Performance Over Time')
+    st.pyplot(fig)
+
+# Reports Page
+elif page == "Reports":
+    st.title("Generate Reports")
+    st.markdown("### Select Report Type")
+    report_type = st.selectbox("Report Type", ["Daily", "Weekly", "Monthly"])
+
+    if st.button("Generate Report"):
+        st.success(f"{report_type} Report Generated Successfully!")
